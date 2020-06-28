@@ -126,16 +126,23 @@ class App extends React.Component {
     });
   }
 
+  checkForm = item => {
+    let result = item.name && item.description && item.price && !isNaN(item.price) && item.quantity && !isNaN(item.quantity);
+    console.log(item, result);
+    return(result);
+  }
+
   render() {
 
     let {ids, items, selected, edit, newItem} = this.state;
 
     let rows = items.map(item => {
+      console.log("price", item.price);
       return (
         <tr>
           <td>{item.name}</td>
           <td>{item.description}</td>
-          <td>{item.price}</td>
+          <td>${parseFloat(item.price).toFixed(2)}</td>
           <td>{item.quantity}</td>
           <td><Button onClick={() => this.setState({edit: item})}>Edit</Button></td>
           <td><Button onClick={() => this.delete(item.id)}>Delete</Button></td>
@@ -143,14 +150,17 @@ class App extends React.Component {
       )
     })
 
+    let total = 0;
+    items.forEach(item => total += (item.price * item.quantity));
+
     return (
       <div>
         <header className="App-header">
-        <Button onClick={() => this.setState({newItem: {}})}>Add new</Button>
-        <Table striped bordered hover style={{color: "white"}}>
+        <p>Cart ID: {selected}</p>
+        <Table striped bordered style={{color: "white", width: "90%"}}>
           <thead>
             <tr>
-              <th>Name</th>
+              <th>Item</th>
               <th>Description</th>
               <th>Price</th>
               <th>Quantity</th>
@@ -162,9 +172,11 @@ class App extends React.Component {
             {rows}
           </tbody>
         </Table>
+        <p>Total: ${total.toFixed(2)}</p>
+        <Button onClick={() => this.setState({newItem: {}})}>Add new</Button>
         <Modal show={this.state.showModal}>
           <Modal.Header closeButton>
-            <Modal.Title>Modal title</Modal.Title>
+            <Modal.Title>FM Shopping Cart</Modal.Title>
           </Modal.Header>
   
           <Modal.Body>
@@ -189,8 +201,8 @@ class App extends React.Component {
         </Modal>
 
         <Modal show={newItem}>
-          <Modal.Header closeButton>
-            <Modal.Title>Edit an item.</Modal.Title>
+          <Modal.Header closeButton onHide={() => this.setState({newItem: false})}>
+            <Modal.Title>Add an item.</Modal.Title>
           </Modal.Header>
   
           <Modal.Body>
@@ -240,11 +252,11 @@ class App extends React.Component {
           </Modal.Body>
   
           <Modal.Footer>
-            <Button variant="secondary" disabled={!selected} onClick={() => this.add()}>{"Save"}</Button>
+            <Button variant="secondary" disabled={!this.checkForm(newItem)} onClick={() => this.add()}>{"Save"}</Button>
           </Modal.Footer>
         </Modal>
 
-        <Modal show={edit}>
+        <Modal show={edit} onHide={() => this.setState({edit: false})}>
           <Modal.Header closeButton>
             <Modal.Title>Edit an item.</Modal.Title>
           </Modal.Header>
@@ -252,6 +264,7 @@ class App extends React.Component {
           <Modal.Body>
             <FormControl
               value={edit.name}
+              placeholder={"Name"}
               onChange={newName => {
                 let newVal = edit;
                 newVal.name = newName.currentTarget.value;
@@ -260,6 +273,7 @@ class App extends React.Component {
             />
             <FormControl
               value={edit.description}
+              placeholder={"Description"}
               onChange={newDescription => {
                 let newVal = edit;
                 newVal.description = newDescription.currentTarget.value;
@@ -272,8 +286,9 @@ class App extends React.Component {
               </InputGroup.Prepend>
               <FormControl
                 value={edit.price}
+                placeholder={"Price"}
                 onChange={newPrice => {
-                  let newVal = edit;
+                  let newVal = edit;                  
                   newVal.price = newPrice.currentTarget.value;
                   this.setState({edit: newVal});
                 }}
@@ -281,6 +296,7 @@ class App extends React.Component {
             </InputGroup>
             <FormControl
               value={edit.quantity}
+              placeholder={"Quantity"}
               onChange={newQuantity => {
                 console.log("new quantity ", newQuantity.currentTarget.value)
                 let newVal = edit;
@@ -292,7 +308,7 @@ class App extends React.Component {
           </Modal.Body>
   
           <Modal.Footer>
-            <Button variant="secondary" disabled={!selected} onClick={() => this.update()}>{"Save"}</Button>
+            <Button variant="secondary" disabled={!this.checkForm(edit)} onClick={() => this.update()}>{"Save"}</Button>
           </Modal.Footer>
         </Modal>
 
